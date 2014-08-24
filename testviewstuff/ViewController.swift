@@ -54,12 +54,11 @@ class ViewController: UIViewController {
 //    }
     
     func menuForGlyph(frame: CGRect) -> UIView {
-        
-        println(CGRect(x: (frame.origin.x - frame.height), y: frame.origin.y, width: frame.width, height: frame.height))
+        println(" frameForBoundingBox \(CGRect(x: (frame.origin.x), y: frame.origin.y - menuFrameHeight, width: frame.width, height: frame.height + menuFrameHeight))")
         let frameForBoundingBox = CGRect(x: frame.origin.x, y: frame.origin.y - menuFrameHeight, width: frame.width, height: frame.height + menuFrameHeight)
         var peripheralMenuFrame = PeripheralMenuFrame(frame: frameForBoundingBox, peripherals: ["A", "A", "A"])
         
-//        peripheralMenuGlyphFrame.backgroundColor = UIColor.blackColor()
+        peripheralMenuFrame.backgroundColor = UIColor.blackColor()
         
         return peripheralMenuFrame
     }
@@ -78,7 +77,7 @@ class ViewController: UIViewController {
                         }
                     } else if let subview = subview as? SingleGlyphView {
                         if subview.pointInside(touch.locationInView(subview), withEvent: event) {
-                            println(subview.frame)
+                            println("SingleGlyphView frame \(subview.frame)")
                             view.addSubview(menuForGlyph(subview.frame))
                             println("touched in sgv")
                         }
@@ -91,21 +90,24 @@ class ViewController: UIViewController {
 
     override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!) {
         for touch in touches {
+            println("touch location: \(touch.locationInView(touch.view)) \(touch.view.description)")
             if let touch = touch as? UITouch {
                 for subview in self.view.subviews {
-                    if let subview = subview as? HighlightView {
-                        if subview.pointInside(touch.locationInView(subview), withEvent: nil) {
-                            subview.shouldHighlight()
-                        } else {
-                            subview.shouldNotHighlight()
-                        }
-                    } else if let subview = subview as? PeripheralMenuFrame {
-                        if subview.pointInside(touch.locationInView(touch.view), withEvent: nil) {
-                            for peripheralMenuGlyphFrame in subview.subviews {
-                                if peripheralMenuGlyphFrame.pointInside(touch.locationInView(touch.view), withEvent: event) {
-                                    peripheralMenuGlyphFrame.peripheralMenuGlyph.shouldHighlight()
-                                }
-                            }
+//                    if let subview = subview as? HighlightView {
+//                        if subview.pointInside(touch.locationInView(subview), withEvent: event) {
+//                            subview.shouldHighlight()
+//                        } else {
+//                            subview.shouldNotHighlight()
+//                        }
+//                    } else
+                if let subview = subview as? PeripheralMenuFrame {
+                        if !subview.pointInside(touch.locationInView(touch.view), withEvent: event) {
+                            subview.removeFromSuperview()
+//                            for peripheralMenuGlyphFrame in subview.subviews {
+//                                if peripheralMenuGlyphFrame.pointInside(touch.locationInView(touch.view), withEvent: event) {
+//                                    peripheralMenuGlyphFrame.peripheralMenuGlyph.shouldHighlight()
+//                                }
+//                            }
                         }
                     }
                 }
@@ -121,7 +123,7 @@ class ViewController: UIViewController {
                         subview.shouldNotHighlight()
                     } else if let subview = subview as? UILabel {
                         subview.highlighted = false
-                    } else if let subview = subview as? PeripheralMenuGlyphFrame {
+                    } else if let subview = subview as? PeripheralMenuFrame {
                         subview.removeFromSuperview()
                     }
                 }
@@ -158,59 +160,10 @@ class HighlightView : UIView {
     }
 }
 
-//view containing all peripherals
-class PeripheralMenuView : UIView {
-    var glyphs = [String]()
-    
-    let peripheralGlyphFrameWidth: CGFloat = 20.0
-    let peripheralGlyphFrameHeight: CGFloat = 30.0
-    
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-    
-    required init(coder aDecoder: NSCoder!) {
-        fatalError("NO NSCODER")
-    }
-    
-    convenience init(frame: CGRect, glyphs: [String]) {
-        self.init(frame: frame)
-        self.glyphs = glyphs
-    }
-}
-
-// this is just a basic UIView but it has special interaction properties. These can be handled in the VC
-class PeripheralMenuGlyphFrame : UIView {
-    var peripheralMenuGlyph = PeripheralMenuGlyph(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-    
-    convenience init(frame: CGRect, glyph: String, backgroundColour: UIColor) { // can also be image - change later
-        self.init(frame: frame)
-    }
-    
-    convenience init(frame: CGRect, glyph: String, isFirst: Bool) {
-
-        self.init(frame: frame)
-        
-        
-        var frameForPeripheral = CGRect(x: 0, y: 0, width: frame.width, height: menuFrameHeight)
-        
-        self.peripheralMenuGlyph = PeripheralMenuGlyph(frame: frameForPeripheral, glyph: glyph, highlight: false)
-        self.backgroundColor = UIColor.greenColor()
-        self.addSubview(peripheralMenuGlyph)
-    }
-    
-    required init(coder aDecoder: NSCoder!) {
-        fatalError("NO NSCODER")
-    }
-}
-
 //the view that holds all peripheralmenuglyphframes' for layout purposes
 class PeripheralMenuFrame : UIView {
+    
+    var peripheralsInView = [PeripheralMenuGlyphFrame]()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -219,7 +172,7 @@ class PeripheralMenuFrame : UIView {
     convenience init(frame: CGRect, glyph: String) {
         self.init(frame: frame)
         var peripheralMenuGlyphFrame = PeripheralMenuGlyphFrame(frame: frame, glyph: glyph, isFirst: false)
-
+        peripheralsInView.append(peripheralMenuGlyphFrame)
         self.addSubview(peripheralMenuGlyphFrame)
         
         println(self.frame.size)
@@ -235,14 +188,17 @@ class PeripheralMenuFrame : UIView {
         var firstFlag = true
         var deltaX: CGFloat = 0
         for glyph in peripherals {
-            var peripheralMenuGlyphFrame = PeripheralMenuGlyphFrame(frame: CGRect(x: deltaX, y: 0, width: frame.width, height: frame.height), glyph: glyph, isFirst: firstFlag)
+            println("frame width: \(frame.width)")
+            var peripheralMenuGlyphFrame = PeripheralMenuGlyphFrame(frame: CGRect(x: 0, y: 0, width: frame.width, height: frame.height), glyph: glyph, isFirst: firstFlag)
             deltaX += frame.width
+            println("delta x \(deltaX)")
             firstFlag = false
+            peripheralsInView.append(peripheralMenuGlyphFrame)
             self.addSubview(peripheralMenuGlyphFrame)
         }
-        println("before size \(self.frame.size)")
-        self.sizeToFit()
-        println("after size \(self.frame.size)")
+//        println("before size \(self.frame.size)")
+//        self.sizeToFit()
+//        println("after size \(self.frame.size)")
         
         
     }
@@ -250,21 +206,89 @@ class PeripheralMenuFrame : UIView {
     required init(coder aDecoder: NSCoder!) {
         fatalError("NO NSCODER")
     }
+    
+    override func sizeToFit() {
+        var sizingFrame = CGSize()
+        for peripheral in peripheralsInView {
+            sizingFrame.width += peripheral.frame.width
+            //TODO fix for multiple rows
+            sizingFrame.height = max(sizingFrame.height, peripheral.frame.height)
+        }
+        
+        println("PeripheralMenuFrame origin \(self.frame.origin)")
+        
+        self.frame.size = sizingFrame
+    }
+    
+    override func layoutSubviews() {
+//        super.layoutSubviews()
+        var deltaX: CGFloat = 0
+//        var origin = CGPoint()
+        for peripheral in peripheralsInView {
+            println("peripheralsInView")
+            peripheral.frame.origin.x += deltaX
+            deltaX += peripheral.frame.width //TODO padding!
+        }
+        self.sizeToFit()
+        println("after size \(self.frame.size)")
+
+    }
 }
 
-class PeripheralMenuGlyph : UIView {
+// this is just a basic UIView but it has special interaction properties. These can be handled in the VC
+class PeripheralMenuGlyphFrame : UIControl {
+    var peripheralMenuGlyph = PeripheralMenuGlyph(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
     
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
     
+    convenience init(frame: CGRect, glyph: String, backgroundColour: UIColor) { // can also be image - change later
+        self.init(frame: frame)
+    }
+    
+    convenience init(frame: CGRect, glyph: String, isFirst: Bool) {
+        
+        self.init(frame: frame)
+        
+        
+        var frameForPeripheral = CGRect(x: 0, y: 0, width: frame.width, height: menuFrameHeight)
+        
+        self.peripheralMenuGlyph = PeripheralMenuGlyph(frame: frameForPeripheral, glyph: glyph, highlight: false)
+//        self.backgroundColor = UIColor.greenColor()
+        self.addSubview(peripheralMenuGlyph)
+        self.addTarget(self, action: Selector("touchDown:event:"), forControlEvents: UIControlEvents.TouchDown)
+    }
+    
+    func touchDown(control: UIControl, event: UIEvent) {
+        println("touchdown")
+    }
+    
+    required init(coder aDecoder: NSCoder!) {
+        fatalError("NO NSCODER")
+    }
+}
+
+class PeripheralMenuGlyph : UIControl {
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        self.userInteractionEnabled = false
+    }
+    
     convenience init(frame: CGRect, glyph: String, highlight: Bool) {
+        println("frame: \(frame)")
         self.init(frame: frame)
         var label = UILabel(frame: frame)
         label.text = glyph
         label.highlighted = false
-        label.backgroundColor = UIColor.grayColor()
+//        label.backgroundColor = UIColor.grayColor()
+//        self.addTarget(self, action: Selector("touchDown:event:"), forControlEvents: UIControlEvents.TouchDown)
         self.addSubview(label)
+    }
+    
+    func touchDown(control: UIControl, event: UIEvent) {
+        println("touchdown")
     }
     
     required init(coder aDecoder: NSCoder!) {
