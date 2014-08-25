@@ -12,181 +12,84 @@ let menuFrameHeight: CGFloat = 50
 class ViewController: UIViewController {
     
 //    var menuView = PeripheralMenuGlyphFrame(frame: CGRect(x: 0, y: 0, width: 0, height: 0))
+    var keyboardTouchView: KeyboardTouchView
     
     @IBOutlet var pinkView: UIView!
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        var label = UILabel(frame: CGRect(x: 0, y: 200, width: 100, height: 100))
-        label.text = "A"
-        label.highlightedTextColor = UIColor.lightTextColor()
-        label.backgroundColor = UIColor.blueColor()
-        label.numberOfLines = 1
-        label.font = UIFont(name: label.font.fontName, size: 30)
-//        label.highlighted = true
-        label.textAlignment = .Center
-        label.adjustsFontSizeToFitWidth = true
-//        label.sizeToFit()
-//        self.view.addSubview(label)
-        
-        var key = SingleGlyphView(frame: CGRect(x: 0, y: 300, width: 50, height: 50), glyph: "A")
-        self.view.addSubview(key)
-
     }
+    
+    override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: NSBundle?) {
+//        self.keyboard = defaultKeyboard()
+        self.keyboardTouchView = KeyboardTouchView(frame: CGRectZero)
+//        self.layout = KeyboardLayout(model: self.keyboard, superview: self.forwardingView)
+        
+        super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
+        
+        self.view.addSubview(self.keyboardTouchView)
+        var key = SingleGlyphView(frame: CGRect(x: 100, y: 100, width: 50, height: 50), glyph: "A")
+//        self.view.addSubview(key)
+        self.keyboardTouchView.addSubview(key)
+        
+        var testView = UIView(frame: CGRect(origin: CGPoint(x: 200, y: 200), size: CGSize(width: 100, height: 100)))
+        testView.backgroundColor = UIColor.whiteColor()
+        self.keyboardTouchView.addSubview(testView)
+        self.keyboardTouchView.backgroundColor = UIColor.clearColor()
+        
+        self.view.backgroundColor = UIColor.grayColor()
+    }
+    
+    convenience required init(coder: NSCoder) {
+        self.init(nibName: nil, bundle: nil)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
     
-    func menuForGlyph(frame: CGRect) -> UIView {
-        println(" frameForBoundingBox \(CGRect(x: (frame.origin.x), y: frame.origin.y - menuFrameHeight, width: frame.width, height: frame.height + menuFrameHeight))")
-        let frameForBoundingBox = CGRect(x: frame.origin.x, y: frame.origin.y - menuFrameHeight, width: frame.width, height: frame.height + menuFrameHeight)
-        var peripheralMenuFrame = PeripheralMenuFrame(frame: frameForBoundingBox, peripherals: ["A", "B", "C"])
-        return peripheralMenuFrame
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        self.keyboardTouchView.frame = self.view.bounds
     }
 
-//    override func touchesBegan(touches: NSSet!, withEvent event: UIEvent!) {
-//        println("touchesBegan")
-//        for touch in touches {
-//            //TODO: ENUM
-//            if let touch = touch as? UITouch {
-//                for subview in self.view.subviews {
-////                    if let subview = subview as? HighlightView {
-////                        if subview.pointInside(touch.locationInView(subview), withEvent: event) {
-////                            subview.shouldHighlight()
-////                        } else {
-////                            subview.shouldNotHighlight()
-////                        }
-////                    }
-//                if let subview = subview as? SingleGlyphView {
-//                        if subview.pointInside(touch.locationInView(subview), withEvent: event) {
-//                            println("SingleGlyphView frame \(subview.frame)")
-//                            self.view.addSubview(menuForGlyph(subview.frame))
-//                            println("touched in sgv")
-//                        }
-//                    }
-//                }
-//
-//            }
-//        }
-//    }
-//
-//    override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!) {
-//        for touch in touches {
-//            if let touch = touch as? UITouch {
-//                for subview in self.view.subviews {
-//                    if let subview = subview as? PeripheralMenuFrame {
-//                        if !subview.pointInside(touch.locationInView(subview), withEvent: event) {
-//                            subview.removeFromSuperview()
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    
-//    override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!) {
-//        for touch in touches {
-//            if let touch = touch as? UITouch {
-//                for subview in self.view.subviews {
-////                    if let subview = subview as? HighlightView {
-////                        subview.shouldNotHighlight()
-////                    }
-//                    if let subview = subview as? UILabel {
-//                        subview.highlighted = false
-//                    } else if let subview = subview as? PeripheralMenuFrame {
-//                        subview.removeFromSuperview()
-//                    }
-//                }
-//            }
-//        }
-//    }
 }
-
-//class HighlightView : UIView {
-//    override init(frame: CGRect) {
-//        super.init(frame: frame)
-//        println("frame: \(frame)")
-//    }
-//    required init(coder aDecoder: NSCoder!) {
-//        fatalError("NO NSCODER")
-//    }
-//    
-//    func shouldHighlight() {
-//        println("shouldHighlight")
-//        if self.subviews.isEmpty {
-//            var overlayView = UIView(frame: CGRect(x: 0, y: 0, width: self.frame.width, height: self.frame.height))
-//            overlayView.backgroundColor = UIColor.yellowColor()
-//            overlayView.alpha = 0.5
-//            self.addSubview(overlayView)
-//        }
-//    }
-//    
-//    func shouldNotHighlight() {
-//        if self.subviews != nil {
-//            for subview in self.subviews {
-//                subview.removeFromSuperview()
-//            }
-//        }
-//    }
-//}
 
 //the view that holds all peripheralmenuglyphframes' for layout purposes
 class PeripheralMenuFrame : UIView {
     
     var peripheralsInView = [PeripheralMenuGlyphFrame]()
     
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
-    
+//    override func drawRect(rect: CGRect) {}
+
     convenience init(frame: CGRect, glyph: String) {
         self.init(frame: frame)
         var peripheralMenuGlyphFrame = PeripheralMenuGlyphFrame(frame: frame, glyph: glyph, isFirst: false)
         peripheralsInView.append(peripheralMenuGlyphFrame)
         self.addSubview(peripheralMenuGlyphFrame)
-        
-        println(self.frame.size)
-        self.sizeToFit()
-        println(self.frame.size)
     }
     
     convenience init(frame: CGRect, peripherals: [String]) {
         self.init(frame: frame)
-        
+        self.backgroundColor = UIColor.clearColor()
+        println("new PeripheralMenuFrame with frame \(frame)")
+
         //TODO far right check for left or right addition plus a space calculator for total width and spacing requirements (closest to closest wall)
         //TODO padding
         var firstFlag = true
         var deltaX: CGFloat = 0
         for glyph in peripherals {
             println("frame width: \(frame.width)")
-            var peripheralMenuGlyphFrame = PeripheralMenuGlyphFrame(frame: CGRect(x: 0, y: 0, width: frame.width, height: frame.height), glyph: glyph, isFirst: firstFlag)
-            peripheralMenuGlyphFrame.setTranslatesAutoresizingMaskIntoConstraints(false)
-//            peripheralMenuGlyphFrame.autoresizesSubviews = false
-//            deltaX += frame.width
-//            println("delta x \(deltaX)")
+            var peripheralMenuGlyphFrame = PeripheralMenuGlyphFrame(frame: CGRect(x: deltaX, y: 0, width: frame.width, height: frame.height), glyph: glyph, isFirst: firstFlag)
+            deltaX += frame.width
             firstFlag = false
             peripheralsInView.append(peripheralMenuGlyphFrame)
             self.addSubview(peripheralMenuGlyphFrame)
         }
-        
-        for var index = 0; index < peripheralsInView.count; ++index {
-            
-            self.addConstraint(NSLayoutConstraint(item: peripheralsInView[index], attribute: NSLayoutAttribute.CenterY, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.CenterY, multiplier: 1, constant: 0))
-            
-            if index == 0 {
-            self.addConstraint(NSLayoutConstraint(item: peripheralsInView[index], attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: self, attribute: NSLayoutAttribute.LeftMargin, multiplier: 1, constant: 0))
-            }
-            if index > 0 {
-                var multiplier: CGFloat = CGFloat(2 * index + 2) / CGFloat(peripheralsInView.count + 1)
-//            var multiplier: CGFloat = 1
-
-            self.addConstraint(NSLayoutConstraint(item: peripheralsInView[index], attribute: NSLayoutAttribute.Left, relatedBy: NSLayoutRelation.Equal, toItem: peripheralsInView[index-1], attribute: NSLayoutAttribute.Right, multiplier: multiplier, constant: 0))
-//            self.addConstraint(NSLayoutConstraint(item: peripheralsInView[index], attribute: <#NSLayoutAttribute#>, relatedBy: <#NSLayoutRelation#>, toItem: <#AnyObject!#>, attribute: <#NSLayoutAttribute#>, multiplier: <#CGFloat#>, constant: <#CGFloat#>))
-//        self.addConstraint(NSLayoutConstraint(item: peripheralsInView[1], attribute: NSLayoutConstraint.)
-            }
-        }
         self.sizeToFit()
-
     }
     
     required init(coder aDecoder: NSCoder!) {
@@ -197,39 +100,12 @@ class PeripheralMenuFrame : UIView {
         var sizingFrame = CGSize()
         for peripheral in peripheralsInView {
             sizingFrame.width += peripheral.frame.width
+            println("sizing frame width \(sizingFrame.width)")
+
             //TODO fix for multiple rows
             sizingFrame.height = max(sizingFrame.height, peripheral.frame.height)
         }
-        
-        println("PeripheralMenuFrame origin \(self.frame.origin)")
-        
         self.frame.size = sizingFrame
-    }
-    
-    func rowLayoutConstraints(arrayOfSubviews: [UIView], framePadding: Int, viewPadding: Int) -> String {
-        var formatString = ""
-        for var index = 0; index < arrayOfSubviews.count; ++index {
-            if index == 0 {
-//                formatString += String("|-%d-[%@]",framePadding.description, "")
-            }
-        }
-        return ""
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-//        var deltaX: CGFloat = 0
-////        var origin = CGPoint()
-//        println("count \(peripheralsInView.count)")
-//        for peripheral in peripheralsInView {
-//            println("peripheral.frame.origin.x \(peripheral.frame.origin.x)")
-//            peripheral.frame.origin.x += deltaX
-//            deltaX += 50
-//            println("delta x \(deltaX) peripheral.frame.origin.x \(peripheral.frame.origin.x)")
-//            deltaX += peripheral.frame.width //TODO padding!
-//        }
-        println("after size \(self.frame.size)")
-
     }
 }
 
@@ -241,6 +117,12 @@ class PeripheralMenuGlyphFrame : UIControl {
         super.init(frame: frame)
     }
     
+//    override func drawRect(rect: CGRect) {}
+
+    override func hitTest(point: CGPoint, withEvent event: UIEvent?) -> UIView? {
+        return self
+    }
+    
     convenience init(frame: CGRect, glyph: String, backgroundColour: UIColor) { // can also be image - change later
         self.init(frame: frame)
     }
@@ -249,14 +131,32 @@ class PeripheralMenuGlyphFrame : UIControl {
         
         self.init(frame: frame)
         
-        
+        println("frame for peripheral \(CGRect(x: 0, y: 0, width: frame.width, height: menuFrameHeight))")
         var frameForPeripheral = CGRect(x: 0, y: 0, width: frame.width, height: menuFrameHeight)
         
         self.peripheralMenuGlyph = PeripheralMenuGlyph(frame: frameForPeripheral, glyph: glyph, highlight: false)
 //        self.translatesAutoresizingMaskIntoConstraints = false
-        self.backgroundColor = UIColor.random()
+//        self.backgroundColor = UIColor.random()
         self.addSubview(peripheralMenuGlyph)
+        self.addTarget(self, action: Selector("touchUp:event:"), forControlEvents: UIControlEvents.TouchUpInside | .TouchDragOutside)
+        self.addTarget(self, action: Selector("touchMoved:event:"), forControlEvents: UIControlEvents.TouchDragInside)
         self.addTarget(self, action: Selector("highlight:event:"), forControlEvents: UIControlEvents.TouchDragEnter)
+    }
+    
+    func touchMoved(control: UIControl, event: UIEvent) {
+        println("touchMoved \(event.touchesForView(self))")
+    }
+    
+    func touchDown(control: UIControl, event: UIEvent) {
+        println("touchDown")
+    }
+    
+    func touchUp(control: UIControl, event: UIEvent) {
+        for subview in self.subviews {
+            if let subview = subview as? PeripheralMenuFrame {
+                subview.removeFromSuperview()
+            }
+        }
     }
     
     func highlight(control: UIControl, event: UIEvent) {
@@ -284,6 +184,12 @@ class PeripheralMenuGlyph : UIControl {
 //        self.addTarget(self, action: Selector("touchDown:event:"), forControlEvents: UIControlEvents.TouchDown)
         self.addSubview(label)
     }
+    
+    override func pointInside(point: CGPoint, withEvent event: UIEvent?) -> Bool {
+                println(point)
+            return super.pointInside(point, withEvent: event)
+    }
+
     
     func touchDown(control: UIControl, event: UIEvent) {
         println("touchdown")
@@ -318,6 +224,7 @@ class SingleGlyphView: UIControl {
     var glyph : String = ""
     var imageView = UIImageView()
     var glyphLabel = UILabel()
+    var menu: UIView?
     
     required init(coder aDecoder: NSCoder!) {
         fatalError("NSCoding not supported")
@@ -325,6 +232,7 @@ class SingleGlyphView: UIControl {
     
     convenience init(frame aRect: CGRect, glyph: String, hPadding: CGFloat, vPadding: CGFloat) {
         self.init(frame: aRect)
+        self.setTranslatesAutoresizingMaskIntoConstraints(false)
         // now do things with padding characters if required
     }
     
@@ -341,33 +249,40 @@ class SingleGlyphView: UIControl {
         glyphLabel.textAlignment = .Center
         glyphLabel.adjustsFontSizeToFitWidth = true
         glyphLabel.backgroundColor = UIColor.blueColor()
+        glyphLabel.userInteractionEnabled = false
         self.addSubview(glyphLabel)
         
         //background image
-        imageView = UIImageView(frame: aRect)
+        imageView = UIImageView(frame: CGRect(origin: CGPoint(x: 0, y: 0), size: self.frame.size))
         imageView.image = UIImage(named: "key.png")
+        imageView.userInteractionEnabled = false
         self.addSubview(imageView)
         self.sendSubviewToBack(imageView)
-        
-        self.addTarget(self, action: Selector("touchDown:event:"), forControlEvents: UIControlEvents.TouchDown)
-        self.addTarget(self, action: Selector("touchUp:event:"), forControlEvents: UIControlEvents.TouchUpInside | .TouchDragOutside)
-        self.addTarget(self, action: Selector("touchMoved:event:"), forControlEvents: UIControlEvents.TouchDragInside)
+        let showOptions: UIControlEvents = .TouchDown | .TouchDragInside | .TouchDragEnter
+        let hideOptions: UIControlEvents = .TouchUpInside | .TouchUpOutside | .TouchDragOutside
+        self.addTarget(self, action: Selector("touchDown:event:"), forControlEvents: showOptions)
+        self.addTarget(self, action: Selector("touchUp:event:"), forControlEvents: hideOptions)
+//        self.addTarget(self, action: Selector("touchMoved:event:"), forControlEvents: UIControlEvents.TouchDragInside)
         
     }
     
     func touchMoved(control: UIControl, event: UIEvent) {
-        println("touchMoved")
+        println("touchMoved \(event.touchesForView(self))")
+        println("single glyph frame \(self.frame)")
     }
     
     func touchDown(control: UIControl, event: UIEvent) {
-        println("touchDown")
-        self.addSubview(menuForGlyph(self.frame))
+        if self.menu == nil {
+            self.menu = menuForGlyph(self.frame)
+            self.addSubview(self.menu!)
+        }
     }
     
     func touchUp(control: UIControl, event: UIEvent) {
         for subview in self.subviews {
             if let subview = subview as? PeripheralMenuFrame {
                 subview.removeFromSuperview()
+                self.menu = nil
             }
         }
     }
@@ -376,6 +291,7 @@ class SingleGlyphView: UIControl {
         println(" frameForBoundingBox \(CGRect(x: (frame.origin.x), y: frame.origin.y - menuFrameHeight, width: frame.width, height: frame.height + menuFrameHeight))")
         let frameForBoundingBox = CGRect(x: 0, y: 0 - menuFrameHeight, width: frame.width, height: frame.height + menuFrameHeight)
         var peripheralMenuFrame = PeripheralMenuFrame(frame: frameForBoundingBox, peripherals: ["A", "B", "C"])
+//        peripheralMenuFrame.backgroundColor = UIColor.blackColor()
         return peripheralMenuFrame
     }
     
@@ -394,12 +310,15 @@ class SingleGlyphView: UIControl {
         }
     }
     
-    func shouldHighlight() {
-        NSLog("SingleGlyphView shouldHighlight %@", self.glyph)
+    override var highlighted: Bool {
+        didSet {
+            shouldHighlight()
+        }
     }
     
-    func shouldNotHighlight() {
-        NSLog("SingleGlyphView shouldNotHighlight %@", self.glyph)
+    func shouldHighlight() {
+        NSLog("SingleGlyphView shouldHighlight %@ %@", self.glyph, highlighted.description)
+        glyphLabel.backgroundColor = highlighted ? UIColor.greenColor() : UIColor.blueColor()
     }
     
     func calloutClicked() {
@@ -438,11 +357,9 @@ extension CGRect {
 
 extension UIColor {
     class func random() -> UIColor! {
-        println("random \(Int(rand())) \(Float(Int(rand()) % 256) / 256.0)")
         let hue : CGFloat = CGFloat( Float(Int(rand()) % 256) / 256.0 );  //  0.0 to 1.0
         let saturation : CGFloat = CGFloat( Float(Int(rand()) % 128) / 256.0 ) + 0.5;  //  0.5 to 1.0, away from white
         let brightness : CGFloat = CGFloat( Float(Int(rand()) % 128) / 256.0 ) + 0.5;  //  0.5 to 1.0, away from black
-        println("\(hue) \(saturation) \(brightness)")
         return UIColor(hue: hue, saturation: saturation, brightness: brightness, alpha: 1)
     }
 }
