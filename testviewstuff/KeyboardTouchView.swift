@@ -165,11 +165,21 @@ extension TouchEvent: SequenceType {
 }
 
 
-class KeyboardTouchView: UIView {
+class KeyboardTouchView: UIView, UIGestureRecognizerDelegate {
     
     var activeTouches = [UITouch: TouchEvent]()
-    var longTouchTimer = NSTimer()
-    var longPressed = false
+    var preciseLongPressGestureRecognizer: UILongPressGestureRecognizer?
+    var peripheralLongPressGestureRecognizer: UILongPressGestureRecognizer?
+    var selectedView: UIView?
+    
+    var menuView: UIView?
+    
+    var peripheralLongPress:Bool = false {
+        didSet {
+            preciseLongPress = false
+        }
+    }
+    var preciseLongPress: Bool = false
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -179,10 +189,121 @@ class KeyboardTouchView: UIView {
         self.userInteractionEnabled = true
         self.opaque = false
         self.backgroundColor = UIColor.clearColor()
+        
+        //Gesture recognizers for two long touch states
+        self.preciseLongPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: Selector("preciseLongPress:"))
+        preciseLongPressGestureRecognizer?.minimumPressDuration = 0.2
+        preciseLongPressGestureRecognizer?.delegate = self
+        self.addGestureRecognizer(preciseLongPressGestureRecognizer!)
+        
+        self.peripheralLongPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: Selector("peripheralLongPress:"))
+        peripheralLongPressGestureRecognizer?.minimumPressDuration = 0.5
+        peripheralLongPressGestureRecognizer?.delegate = self
+        self.addGestureRecognizer(peripheralLongPressGestureRecognizer!)
     }
     
     required init(coder: NSCoder) {
         fatalError("NSCoding not supported")
+    }
+    
+    func gestureRecognizer(gestureRecognizer: UIGestureRecognizer!, shouldRecognizeSimultaneouslyWithGestureRecognizer otherGestureRecognizer: UIGestureRecognizer!) -> Bool {
+        return true
+    }
+    
+    //MARK: this is the long press gesture recognizer stuff for handling the display and navigation of menus
+    func longPress(recognizer: UIGestureRecognizer) {
+        println("longPress  \(recognizer.locationInView(recognizer.view))")
+    }
+
+    //MARK: PreciseLongPress State stuff
+    func preciseLongPress(recognizer: UIGestureRecognizer) {
+        let touchPoint: CGPoint = recognizer.locationInView(recognizer.view)
+        var view = findNearestView(recognizer.locationInView(self))
+        if view == nil {
+            return
+        }
+        if peripheralLongPress {return}
+        println("preciseLongPress")
+
+        if let view = view as? UIControl {
+            
+            switch recognizer.state {
+            case .Began:
+                view.highlighted = false
+                selectedView = view
+                menuView = MenuView(frame: selectedView!.frame, glyph: "A")
+//                showPreciseMenu(selectedView)
+            case .Changed:
+                if let menuView = menuView as? MenuView {
+                    if menuView.pointInside(touchPoint, withEvent: nil) {
+                    menuView.handleTouch(touchPoint)
+                    }
+                } else {
+                    menuView?.removeFromSuperview()
+                }
+                
+                if view != selectedView {
+                    //Now we've moved into a different view so break out of this mode
+//                    hidePreciseMenu(selectedView)
+                    //TODO hide view!
+                    break
+                }
+            case .Ended:
+                if view == selectedView {
+                    handleTapEvent(recognizer.locationInView(recognizer.view)) //send the tap event for this press
+                }
+//                hidePreciseMenu(selectedView)
+            default:
+//                hidePreciseMenu(selectedView)
+                break
+            }
+        }
+    }
+    
+    //MARK: PeripheralLongPress State stuff
+    func peripheralLongPress(recognizer: UIGestureRecognizer) {
+        let touchPoint: CGPoint = recognizer.locationInView(recognizer.view)
+        var view = findNearestView(recognizer.locationInView(self))
+        if view == nil {
+            return
+        }
+        
+        println("peripheralLongPress")
+
+        self.peripheralLongPress = true
+
+//        if let view = view as? UIControl {view.highlighted = false }
+            switch recognizer.state {
+            case .Began:
+                selectedView = view
+//                superview?.addSubview(MenuView(frame: view.frame, glyphs: ["A", "B", "C"]))
+                menuView = MenuView(frame: selectedView!.frame, glyphs: ["D", "D", "D"])
+                self.addSubview(menuView!)
+            case .Ended:
+                menuView?.removeFromSuperview()
+                peripheralLongPress = false
+            case .Changed:
+                
+                if let menuView = menuView as? MenuView {
+
+                    let convertedPoint = convertPoint(touchPoint, toView: menuView)
+                    if menuView.pointInside(convertedPoint, withEvent: nil) {
+                        println("handle")
+                        
+                        menuView.handleTouch(convertedPoint)
+                    }
+                    else {
+                        println("Remove")
+                        menuView.removeFromSuperview()
+                    }
+                }
+                
+                
+                println("views equal")
+            default:
+                println("peripheralLongPress default")
+            }
+//        }
     }
     
     // Why have this useless drawRect? Well, if we just set the backgroundColor to clearColor,
@@ -194,7 +315,7 @@ class KeyboardTouchView: UIView {
     override func hitTest(point: CGPoint, withEvent event: UIEvent!) -> UIView! {
         return self
     }
-    
+
     var activeView: UIView?
     
     // TODO: drag up control centre from bottom == stuck
@@ -206,6 +327,11 @@ class KeyboardTouchView: UIView {
         if !(view is UIControl) {
             return
         }
+        
+//        if let control = view as? PeripheralMenuGlyphFrame {
+//            println("peripheral menu glyph frame")
+//            // these are the special menu glyphs and should be checked for FIRST so we can skip lower keys
+//        }
         
         let control = view! as UIControl
         
@@ -238,54 +364,44 @@ class KeyboardTouchView: UIView {
         }
     }
     
-    func longPress() {
-        println("longPress")
-    }
-    
     override func touchesBegan(touches: NSSet!, withEvent event: UIEvent!) {
         
-        // this will find the first-touch view and prep it for highlighting. 
-        //TODO: make this handle multitouch situations appropriately (long press menu on multiple keys?)
-        
+        // this will find the first-touch view and prep it for highlighting.
         //this is touch stuff for keyviews
         for touch in touches {
             if let touch = touch as? UITouch {
                 var view = findNearestView(touch.locationInView(self))
+                
                 self.handleControl(view, controlEvent: .TouchDown) //This will highlight the view
-                println("touchesBegan")
-                    longTouchTimer.invalidate()
-                    // setup for firing a long touch trigger
-                    longTouchTimer = NSTimer.scheduledTimerWithTimeInterval(0.5, target: self, selector: Selector("longPress"), userInfo: nil, repeats: false)
                 
                 // this is the touch handling for the disambiguator
-                activeTouches[touch] = TouchEvent(touch: touch, activeView: view!) //TODO unwrap properly or fix implementation
-                
-                //if the state is longPressed, we want to cancel the long press here
-                
+                if let view = view? {
+                activeTouches[touch] = TouchEvent(touch: touch, activeView: view) //TODO unwrap properly or fix implementation. This assumes there's a view
+                } else {
+                    fatalError("there is no view in superview")
+                }
             }
         }
     }
     
     override func touchesMoved(touches: NSSet!, withEvent event: UIEvent!) {
-        
-        // this is the touch handling for the disambiguator
+
         for touch in touches {
             if let touch = touch as? UITouch {
                 
+                //TODO: add flags for this instead of state
+//                if keyboardTouchMenuState != .Normal {
+//                    activeTouches.removeValueForKey(touch)
+//                    return
+//                }
+            
                 let touchEvent = activeTouches[touch]!
                 touchEvent.add(touch)
-                
+
                 //this is touch stuff for keyviews
                 var view = findNearestView(touch.locationInView(self))
                 
                 if view != touchEvent.activeView {
-                    //reset the timer with the new view
-                    //TODO pass views
-                    if longTouchTimer.valid {
-                        longTouchTimer.invalidate()
-                    }
-                    longTouchTimer = longPressed ? NSTimer.scheduledTimerWithTimeInterval(0.5, target: self, selector: Selector("longPress"), userInfo: nil, repeats: false) : NSTimer() //empty nstimer
-
                     self.handleControl(touchEvent.activeView, controlEvent: .TouchUpOutside)
                     touchEvent.activeView = view!
                     self.handleControl(touchEvent.activeView, controlEvent: .TouchDown)
@@ -299,12 +415,15 @@ class KeyboardTouchView: UIView {
     
     override func touchesEnded(touches: NSSet!, withEvent event: UIEvent!)  {
         
-        if longTouchTimer.valid {
-            longTouchTimer.invalidate()
-        }
         // this is the touch handling for the disambiguator
         for touch in touches {
             if let touch = touch as? UITouch {
+                
+                //TODO: add flags for this instead of state
+                //                if keyboardTouchMenuState != .Normal {
+                //                    activeTouches.removeValueForKey(touch)
+                //                    return
+                //                }
                 
                 var view = findNearestView(touch.locationInView(self))
                 self.handleControl(view, controlEvent: .TouchUpInside)
@@ -329,7 +448,6 @@ class KeyboardTouchView: UIView {
     }
     
     //MARK: extracting events from touches
-    
     func handleKeyboardTouchEvent(keyboardTouchEventType: KeyboardTouchEventType) {
         switch keyboardTouchEventType {
         case .Tap(let point):
@@ -347,21 +465,6 @@ class KeyboardTouchView: UIView {
     
     func handleTapEvent(point: CGPoint) {
         NSLog("Called handleTapEvent")
-//
-//        NSLog("Called handleTapEvent A x %f y %f", point.x, point.y)
-//        
-//        var bounds = keyboardView.bounds
-//        NSLog("Called handleTapEvent B origin: %f", bounds.origin.x)
-//        
-//        let normalizedX : Double = (Double(point.x)  - Double(bounds.origin.x)) / Double(bounds.size.width)
-//        let normalizedY : Double = (Double(point.y)  - Double(bounds.origin.y)) / Double(bounds.size.height)
-//        NSLog("Called handleTapGesture C ")
-//        switch mode {
-//        case .Mode1d:
-//            receiver?.keyboardReceivedTap(atLocation: normalizedX)
-//        case .Mode2d:
-//            receiver?.keyboardReceivedTap(atLocation: (normalizedX, normalizedY))
-//        }
     }
     
     func handleSwipeLeftEvent() {
@@ -375,7 +478,6 @@ class KeyboardTouchView: UIView {
     }
     
     //MARK: extracting subviews from touches
-    
     // TODO: there's a bit of "stickiness" to Apple's implementation
     func findNearestView(position: CGPoint) -> UIView? {
         var closest: (UIView, CGFloat)? = nil
@@ -408,7 +510,6 @@ class KeyboardTouchView: UIView {
             return nil
         }
     }
-    
     // http://stackoverflow.com/questions/3552108/finding-closest-object-to-cgpoint
     func distanceBetween(rect: CGRect, point: CGPoint) -> CGFloat {
         if CGRectContainsPoint(rect, point) {
@@ -433,5 +534,18 @@ class KeyboardTouchView: UIView {
         let a = pow(Double(closest.y - point.y), 2)
         let b = pow(Double(closest.x - point.x), 2)
         return CGFloat(sqrt(a + b));
+    }
+    
+    func addPreciseMenu(view: UIView) -> UIView {
+        return MenuView(frame: CGRectZero)
+    }
+    
+    func addPeripheralMenu(view: UIView) -> UIView? {
+        if let view = view as? SingleGlyphView  {
+            if view.hasPeripheralMenu {
+                return MenuView(frame: CGRectZero)
+            }
+        }
+        return nil
     }
 }
