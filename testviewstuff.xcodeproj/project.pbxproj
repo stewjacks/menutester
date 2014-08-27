@@ -10,7 +10,6 @@
 		8D8802E419AC1A6E000C4349 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D8802E319AC1A6E000C4349 /* MenuView.swift */; };
 		8D8802E619AC1ABE000C4349 /* KeyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D8802E519AC1ABE000C4349 /* KeyView.swift */; };
 		8DC8C29D19AA89B000AAC962 /* KeyboardTouchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC8C29C19AA89B000AAC962 /* KeyboardTouchView.swift */; };
-		8DC8C2A119AA957200AAC962 /* KeyboardViewProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DC8C2A019AA957200AAC962 /* KeyboardViewProtocol.swift */; };
 		8DFA8FEA19A6994D00CA4775 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFA8FE919A6994D00CA4775 /* AppDelegate.swift */; };
 		8DFA8FEC19A6994D00CA4775 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DFA8FEB19A6994D00CA4775 /* ViewController.swift */; };
 		8DFA8FEF19A6994D00CA4775 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8DFA8FED19A6994D00CA4775 /* Main.storyboard */; };
@@ -32,7 +31,6 @@
 		8D8802E319AC1A6E000C4349 /* MenuView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		8D8802E519AC1ABE000C4349 /* KeyView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyView.swift; sourceTree = "<group>"; };
 		8DC8C29C19AA89B000AAC962 /* KeyboardTouchView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyboardTouchView.swift; sourceTree = "<group>"; };
-		8DC8C2A019AA957200AAC962 /* KeyboardViewProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = KeyboardViewProtocol.swift; sourceTree = "<group>"; };
 		8DFA8FE419A6994D00CA4775 /* testviewstuff.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = testviewstuff.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8DFA8FE819A6994D00CA4775 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		8DFA8FE919A6994D00CA4775 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -87,7 +85,6 @@
 				8DFA8FEB19A6994D00CA4775 /* ViewController.swift */,
 				8D8802E519AC1ABE000C4349 /* KeyView.swift */,
 				8D8802E319AC1A6E000C4349 /* MenuView.swift */,
-				8DC8C2A019AA957200AAC962 /* KeyboardViewProtocol.swift */,
 				8DC8C29C19AA89B000AAC962 /* KeyboardTouchView.swift */,
 				8DFA8FED19A6994D00CA4775 /* Main.storyboard */,
 				8DFA8FF019A6994D00CA4775 /* Images.xcassets */,
@@ -223,7 +220,6 @@
 				8D8802E419AC1A6E000C4349 /* MenuView.swift in Sources */,
 				8DFA8FEC19A6994D00CA4775 /* ViewController.swift in Sources */,
 				8D8802E619AC1ABE000C4349 /* KeyView.swift in Sources */,
-				8DC8C2A119AA957200AAC962 /* KeyboardViewProtocol.swift in Sources */,
 				8DC8C29D19AA89B000AAC962 /* KeyboardTouchView.swift in Sources */,
 				8DFA8FEA19A6994D00CA4775 /* AppDelegate.swift in Sources */,
 			);

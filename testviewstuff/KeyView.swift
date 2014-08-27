@@ -73,18 +73,6 @@ class SingleGlyphView: UIControl {
         
         }
         
-        var shouldShowPreciseMenu: Bool = false {
-        didSet {
-//        preciseMenu(shouldShowPreciseMenu)
-        }
-        }
-        
-    var shouldShowPeripheralMenu: Bool = false {
-        didSet {
-//        peripheralMenu(shouldShowPeripheralMenu)
-        }
-        }
-        
     func calloutClicked() {
         NSLog("SingleGlyphView calloutClicked %@", self.glyph)
         }
